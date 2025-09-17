@@ -1,5 +1,6 @@
 import os
 import flet as ft
+import platform
 
 def main(page: ft.Page):
     page.title = "Gestor de Archivos"
@@ -27,6 +28,24 @@ def main(page: ft.Page):
 
     # Base de comentarios en memoria
     comentarios = {}
+
+    #abrir archivos carpeta
+    def abrir_item(ruta):
+        if os.path.isdir(ruta):
+            ruta_actual.value = ruta
+            listar_archivos()
+        else:
+            try:
+                sistema = platform.system()
+                if sistema == "Windows":
+                    os.startfile(ruta)
+                elif sistema == "Darwin":  # macOS
+                    os.system(f"open '{ruta}'")
+                else:  # Linux
+                    os.system(f"xdg-open '{ruta}'")
+            except Exception as ex:
+                page.snack_bar = ft.SnackBar(ft.Text(f"No se pudo abrir: {ex}"), open=True)
+                page.update()
 
     # Crear archivo
     def crear_archivo(e):
@@ -156,7 +175,12 @@ def main(page: ft.Page):
                 )
 
                 lista_archivos.controls.append(
-                    ft.Row([ft.Icon(icono), ft.Text(item, expand=True)] + acciones)
+                    ft.Container(
+                        content = ft.Row([ft.Icon(icono), ft.Text(item, expand=True)] + acciones),
+                        on_click=lambda e, p=ruta_item: abrir_item(p),
+                        ink=True,
+                    )
+                    
                 )
         except Exception as ex:
             lista_archivos.controls.append(ft.Text(f"Error: {ex}", color="red"))
