@@ -9,17 +9,6 @@ def main(page: ft.Page):
     page.window_height = 550
     page.scroll = "auto"
 
-    # Rol actual (por defecto editor)
-    rol_usuario = ft.Dropdown(
-        label="Selecciona rol",
-        value="editor",
-        options=[
-            ft.dropdown.Option("lector"),
-            ft.dropdown.Option("editor"),
-            ft.dropdown.Option("comentador"),
-        ],
-        width=200,
-    )
 
     # Ruta inicial
     ruta_actual = ft.TextField(value=os.getcwd(), expand=True)
@@ -50,8 +39,6 @@ def main(page: ft.Page):
 
     # Crear archivo
     def crear_archivo(e):
-        if rol_usuario.value != "editor":
-            return
         nombre = nombre_input.value.strip()
         if nombre:
             ruta = os.path.join(ruta_actual.value, nombre)
@@ -61,8 +48,6 @@ def main(page: ft.Page):
 
     # Crear directorio
     def crear_directorio(e):
-        if rol_usuario.value != "editor":
-            return
         nombre = nombre_input.value.strip()
         if nombre:
             ruta = os.path.join(ruta_actual.value, nombre)
@@ -71,8 +56,6 @@ def main(page: ft.Page):
 
     # Eliminar
     def eliminar(ruta):
-        if rol_usuario.value != "editor":
-            return
         try:
             if os.path.isdir(ruta):
                 os.rmdir(ruta)  # elimina solo si está vacío
@@ -85,9 +68,6 @@ def main(page: ft.Page):
 
     # Renombrar
     def renombrar(ruta):
-        if rol_usuario.value != "editor":
-            return
-
         def confirmar(e):
             nuevo_nombre = nuevo_input.value.strip()
             if nuevo_nombre:
@@ -106,9 +86,6 @@ def main(page: ft.Page):
         page.open(dlg)
     # cambiar permisos
     def cambiar_permisos(ruta):
-        if rol_usuario.value != "editor":
-            return
-
         lectura = ft.Checkbox(label="Lectura", value=True)
         escritura = ft.Checkbox(label="Escritura", value=True)
         ejecucion = ft.Checkbox(label="Ejecución", value=False)
@@ -137,44 +114,7 @@ def main(page: ft.Page):
         )
         page.open(dlg)
 
-    # Comentar
-    def comentar(ruta):
-        if rol_usuario.value != "comentador":
-            return
 
-        def guardar_comentario(e):
-            if ruta not in comentarios:
-                comentarios[ruta] = []
-            comentarios[ruta].append(comentario_input.value.strip())
-            dlg.open = False
-            page.snack_bar = ft.SnackBar(
-                ft.Text(f"Comentario guardado para {os.path.basename(ruta)}"),
-                open=True,
-            )
-            page.update()
-
-        comentario_input = ft.TextField(
-            label="Escribe un comentario", multiline=True, width=400
-        )
-        dlg = ft.AlertDialog(
-            title=ft.Text(f"Comentar {os.path.basename(ruta)}"),
-            content=comentario_input,
-            actions=[ft.TextButton("Guardar", on_click=guardar_comentario)],
-        )
-        page.open(dlg)
-
-    # Ver comentarios (fuera de comentar)
-    def ver_comentarios(ruta):
-        lista = comentarios.get(ruta, ["(No hay comentarios)"])
-        def cerrar(e):
-            dlg.open = False
-            page.update()
-        dlg = ft.AlertDialog(
-            title=ft.Text(f"Comentarios de {os.path.basename(ruta)}"),
-            content=ft.Column([ft.Text(c) for c in lista], scroll="auto", height=300),
-            actions=[ft.TextButton("Cerrar", on_click=cerrar)],
-        )
-        page.open(dlg)
 
     # Refrescar listado
     def listar_archivos(e=None):
@@ -188,27 +128,18 @@ def main(page: ft.Page):
                 acciones = []
 
                 # solo el rol de editor puede eliminar o renombrar
-                if rol_usuario.value == "editor":
-                    acciones.append(
+
+                acciones.append(
                         ft.IconButton(ft.Icons.DELETE, on_click=lambda e, p=ruta_item: eliminar(p))
                     )
-                    acciones.append(
+                acciones.append(
                         ft.IconButton(ft.Icons.EDIT, on_click=lambda e, p=ruta_item: renombrar(p))
                     )
-                    acciones.append(
+                acciones.append(
                         ft.IconButton(ft.Icons.LOCK, on_click=lambda e, p=ruta_item: cambiar_permisos(p))
                     )
 
-                # solo rol comentador puede comentar
-                if rol_usuario.value == "comentador":
-                    acciones.append(
-                        ft.IconButton(ft.Icons.COMMENT, on_click=lambda e, p=ruta_item: comentar(p))
-                    )
 
-                # cualquier rol puede ver comentarios
-                acciones.append(
-                    ft.IconButton(ft.Icons.VISIBILITY, on_click=lambda e, p=ruta_item: ver_comentarios(p))
-                )
 
                 lista_archivos.controls.append(
                     ft.Container(
@@ -239,13 +170,8 @@ def main(page: ft.Page):
         ft.IconButton(ft.Icons.REFRESH, tooltip="Refrescar", on_click=listar_archivos),
     ])
 
-    # Cuando cambie el rol, refrescar listado
-    def cambiar_rol(e):
-        listar_archivos()
-    rol_usuario.on_change = cambiar_rol
 
     # Layout
-    page.add(ft.Row([ft.Text("Rol:"), rol_usuario]))
     page.add(ft.Row([ft.Text("Ruta:"), ruta_actual, ft.IconButton(ft.Icons.REFRESH, on_click=listar_archivos)]))
     page.add(acciones)
     page.add(lista_archivos)
