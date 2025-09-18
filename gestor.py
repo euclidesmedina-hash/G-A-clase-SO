@@ -1,6 +1,7 @@
 import os
 import flet as ft
 import platform
+import stat
 
 def main(page: ft.Page):
     page.title = "Gestor de Archivos"
@@ -103,6 +104,38 @@ def main(page: ft.Page):
             actions=[ft.TextButton("Aceptar", on_click=confirmar)],
         )
         page.open(dlg)
+    # cambiar permisos
+    def cambiar_permisos(ruta):
+        if rol_usuario.value != "editor":
+            return
+
+        lectura = ft.Checkbox(label="Lectura", value=True)
+        escritura = ft.Checkbox(label="Escritura", value=True)
+        ejecucion = ft.Checkbox(label="Ejecución", value=False)
+
+        def aplicar(e):
+            permisos = 0
+            if lectura.value:
+                permisos |= stat.S_IREAD
+            if escritura.value:
+                permisos |= stat.S_IWRITE
+            if ejecucion.value:
+                permisos |= stat.S_IEXEC
+
+            try:
+                os.chmod(ruta, permisos)
+                page.snack_bar = ft.SnackBar(ft.Text(f"Permisos aplicados a {os.path.basename(ruta)}"), open=True)
+            except Exception as ex:
+                page.snack_bar = ft.SnackBar(ft.Text(f"Error cambiando permisos: {ex}"), open=True)
+            dlg.open = False
+            page.update()
+
+        dlg = ft.AlertDialog(
+            title=ft.Text(f"Cambiar permisos: {os.path.basename(ruta)}"),
+            content=ft.Column([lectura, escritura, ejecucion]),
+            actions=[ft.TextButton("Aplicar", on_click=aplicar)],
+        )
+        page.open(dlg)
 
     # Comentar
     def comentar(ruta):
@@ -161,6 +194,9 @@ def main(page: ft.Page):
                     )
                     acciones.append(
                         ft.IconButton(ft.Icons.EDIT, on_click=lambda e, p=ruta_item: renombrar(p))
+                    )
+                    acciones.append(
+                        ft.IconButton(ft.Icons.LOCK, on_click=lambda e, p=ruta_item: cambiar_permisos(p))
                     )
 
                 # solo rol comentador puede comentar
