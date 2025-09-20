@@ -16,9 +16,6 @@ def main(page: ft.Page):
     # Lista de archivos
     lista_archivos = ft.ListView(expand=True, spacing=5, padding=10)
 
-    # Base de comentarios en memoria
-    comentarios = {}
-
     #abrir archivos carpeta
     def abrir_item(ruta):
         if os.path.isdir(ruta):
@@ -42,6 +39,15 @@ def main(page: ft.Page):
         nombre = nombre_input.value.strip()
         if nombre:
             ruta = os.path.join(ruta_actual.value, nombre)
+            if os.path.exists(ruta):
+                dlg = ft.AlertDialog(
+                    title=ft.Text("Archivo existente"),
+                    content=ft.Text(f"El archivo o carpeta '{nombre}' ya existe."),
+                    actions=[ft.TextButton("Aceptar", on_click=lambda e: page.close(dlg))]
+                )
+                page.open(dlg)
+
+        else:
             with open(ruta, "w") as f:
                 f.write("")  # archivo vacío
             listar_archivos()
@@ -88,7 +94,7 @@ def main(page: ft.Page):
     def cambiar_permisos(ruta):
         lectura = ft.Checkbox(label="Lectura", value=True)
         escritura = ft.Checkbox(label="Escritura", value=True)
-        ejecucion = ft.Checkbox(label="Ejecución", value=False)
+        oculto = ft.Checkbox(label="Oculto", value=False)
 
         def aplicar(e):
             permisos = 0
@@ -96,7 +102,7 @@ def main(page: ft.Page):
                 permisos |= stat.S_IREAD
             if escritura.value:
                 permisos |= stat.S_IWRITE
-            if ejecucion.value:
+            if oculto.value:
                 permisos |= stat.S_IEXEC
 
             try:
@@ -109,7 +115,7 @@ def main(page: ft.Page):
 
         dlg = ft.AlertDialog(
             title=ft.Text(f"Cambiar permisos: {os.path.basename(ruta)}"),
-            content=ft.Column([lectura, escritura, ejecucion]),
+            content=ft.Column([lectura, escritura, oculto]),
             actions=[ft.TextButton("Aplicar", on_click=aplicar)],
         )
         page.open(dlg)
