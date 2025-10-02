@@ -2,9 +2,9 @@ import flet as ft
 from core.file_manager import FileManager as fm
 
 class Header(ft.Container):
-    def __init__(self, file_maneger:fm, refresh_callback):
+    def __init__(self, file_manager:fm, refresh_callback):
         super().__init__()
-        self.file_manager = file_maneger
+        self.file_manager = file_manager
         self.refresh_callback = refresh_callback
 
         self.content_navigation = ft.Row(

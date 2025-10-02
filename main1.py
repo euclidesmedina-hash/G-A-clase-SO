@@ -6,7 +6,7 @@ def main(page:ft.Page):
     page.window.min_width = 500
     page.window.min_height = 400
 
-    layout = Layout()
+    layout = Layout(page)
     page.add(layout)
 
 if __name__ == "__main__":
