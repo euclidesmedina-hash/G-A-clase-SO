@@ -1,4 +1,6 @@
 import os
+import platform
+import subprocess
 
 class FileManager:
     def __init__(self):
@@ -48,8 +50,21 @@ class FileManager:
         self.history.append(new_path)
         self.history_index += 1
 
+    def open_file(self, file_name):
+        """Abrir archivo con la app predeterminada del SO"""
+        file_path = os.path.join(self.current_path, file_name)
 
-file = FileManager()
+        if not os.path.isfile(file_path):
+            return False
 
-print("ruta actual: ",file.current_path)
-print(file.history)
+        try:
+            if platform.system() == "Windows":
+                os.startfile(file_path)
+            elif platform.system() == "Darwin":  # macOS
+                subprocess.call(["open", file_path])
+            else:  # Linux
+                subprocess.call(["xdg-open", file_path])
+            return True
+        except Exception as e:
+            print(f"Error al abrir archivo: {e}")
+            return False
