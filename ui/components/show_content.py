@@ -25,17 +25,19 @@ class ShowContent(ft.Container):
         for item in self.file_manager.list_dir():
             path = os.path.join(self.file_manager.current_path, item)
             icon = ft.Icons.FOLDER if os.path.isdir(path) else ft.Icons.DESCRIPTION
-            # is_dir = os.path.isdir(path)
+            is_dir = os.path.isdir(path)
 
             self.column.controls.append(
                 ft.Container(
                     content=ft.Row([ft.Icon(icon), ft.Text(item, expand=True)]),
-                    on_click= lambda e, f=item: self.on_click_item(f),
+                    on_click= lambda e, f=item, d=is_dir: self.on_click_item(f,d),
                     ink=True
                 )
             )
         self.update()
 
-    def on_click_item(self, item):
-        if self.file_manager.navigate_to(item):
+    def on_click_item(self, item, is_dir):
+        if is_dir and self.file_manager.navigate_to(item):
             self.refresh_callback()
+        else:
+            self.file_manager.open_file(item)
