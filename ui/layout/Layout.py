@@ -9,12 +9,12 @@ class Layout(ft.Container):
         super().__init__()
         self.page = page
         self.expand = True
-        self.file_maneger = FileManager()
+        self.file_manager = FileManager()
 
         #components
-        self.header = Header(self.file_maneger, self.refresh)
-        self.sidebar = Sidebar()
-        self.show_content = ShowContent(self.file_maneger, self.refresh)
+        self.header = Header(self.file_manager, self.refresh)
+        self.sidebar = Sidebar(self.file_manager, self.refresh)
+        self.show_content = ShowContent(self.file_manager, self.refresh)
 
         self.content = ft.Column(
             spacing=0,
